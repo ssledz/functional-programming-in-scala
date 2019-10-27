@@ -6,7 +6,10 @@ trait Foldable[F[_]] {
 
   def foldLeft[A, B](as: F[A])(z: B)(f: (B, A) => B): B
 
-  def foldMap[A, B](as: F[A])(f: A => B)(mb: Monoid[B]): B
+  def foldMap[A, B](as: F[A])(f: A => B)(mb: Monoid[B]): B =
+    foldLeft(as)(mb.zero) { (acc, a) =>
+      mb.op(acc, f(a))
+    }
 
   def concatenate[A](as: F[A])(m: Monoid[A]): A =
     foldLeft(as)(m.zero)(m.op)
@@ -15,8 +18,8 @@ trait Foldable[F[_]] {
 
 object Foldable {
 
-  def apply[F[_]: Foldable]: Foldable[F] = implicitly[Foldable[F]]
+  def apply[F[_] : Foldable]: Foldable[F] = implicitly[Foldable[F]]
 
 }
 
-object FoldableInstances extends Ex12.FoldableInstances
+object FoldableInstances extends Ex12.FoldableInstances with Ex13.FoldableInstances
