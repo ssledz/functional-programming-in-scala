@@ -23,3 +23,4 @@ object Foldable {
 }
 
 object FoldableInstances extends Ex12.FoldableInstances with Ex13.FoldableInstances
+  with Ex14.FoldableInstances
