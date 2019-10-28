@@ -9,28 +9,28 @@ object Ex13 {
 
     implicit val foldableTreeInstance: Foldable[Tree] = new Foldable[Tree] {
 
-      override def foldRight[A, B](as: Tree[A])(z: B)(f: (A, B) => B): B = as match {
-        case Leaf(a) => f(a, z)
-        case Branch(left, Leaf(a)) => f(a, foldRight(left)(z)(f))
-        case Branch(Leaf(a), right) => f(a, foldRight(right)(z)(f))
+      def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B): B = as match {
+        case Leaf(a) => f(z, a)
+        case Branch(left, Leaf(a)) => f(foldLeft(left)(z)(f), a)
+        case Branch(Leaf(a), right) => foldLeft(right)(f(z, a))(f)
         case Branch(left, right) => {
-          val acc = foldRight(right)(z)(f)
-          foldRight(left)(acc)(f)
+          val acc = foldLeft(left)(z)(f)
+          foldLeft(right)(acc)(f)
         }
       }
 
-      override def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B): B = {
+      def foldRight[A, B](as: Tree[A])(z: B)(f: (A, B) => B): B = {
 
         def go(t: Tree[A], acc: B): B = t match {
-          case Leaf(a) => f(acc, a)
-          case Branch(left, Leaf(a)) => go(left, f(acc, a))
-          case Branch(Leaf(a), right) => go(right, f(acc, a))
+          case Leaf(a) => f(a, acc)
+          case Branch(left, Leaf(a)) => go(left, f(a, acc))
+          case Branch(Leaf(a), right) => go(right, f(a, acc))
+
           case Branch(left, right) => go(left, go(right, acc))
         }
 
         go(as, z)
       }
-
     }
 
   }
