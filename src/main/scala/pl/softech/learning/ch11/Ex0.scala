@@ -1,6 +1,7 @@
 package pl.softech.learning.ch11
 
 import pl.softech.learning.ch11.ApplicativeSyntax._
+import pl.softech.learning.ch11.Assertion._
 import pl.softech.learning.ch11.FunctorSyntax._
 import pl.softech.learning.ch11.MonadInstances._
 import pl.softech.learning.ch11.MonadSyntax._
@@ -26,17 +27,6 @@ object Ex0 {
     (Option(1), Option(2)).mapN(_ + _) === Some(3)
 
     (Option(1) >>= ((a: Int) => Option(a + 1))) === Some(2)
-
-  }
-
-  implicit class IdOps[A](val a: A) extends AnyVal {
-
-    def ===(b: A): Unit = {
-      if (a != b) {
-        println(s"Required : $b but is $a")
-      }
-      assert(a == b)
-    }
 
   }
 

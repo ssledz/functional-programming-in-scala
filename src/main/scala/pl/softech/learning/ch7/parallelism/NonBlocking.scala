@@ -6,7 +6,7 @@ import java.util.concurrent.{Callable, CountDownLatch, ExecutorService}
 object NonBlocking {
 
   sealed trait Future[A] {
-    private[parallelism] def apply(k: A => Unit): Unit
+    private[parallelism] def apply(cb: A => Unit): Unit
   }
 
   type Par[A] = ExecutorService => Future[A]
@@ -15,11 +15,13 @@ object NonBlocking {
     def apply(cb: A => Unit): Unit = cb(a)
   }
 
+  def lazyUnit[A](a: => A): Par[A] = fork(unit(a))
+
   def fork[A](a: => Par[A]): Par[A] = es => new Future[A] {
     def apply(cb: A => Unit): Unit = eval(es)(a(es)(cb))
   }
 
-  def eval(es: ExecutorService)(r: => Unit): Unit = es.submit(new Callable[Unit] {
+  private def eval(es: ExecutorService)(r: => Unit): Unit = es.submit(new Callable[Unit] {
     def call = r
   })
 
@@ -33,6 +35,13 @@ object NonBlocking {
 
     ref.get
   }
+
+  def flatMap[A, B](pa: Par[A])(f: A => Par[B]): Par[B] = es => new Future[B] {
+    override private[parallelism] def apply(cb: B => Unit): Unit = {
+      pa(es)(a => f(a)(es)(b => cb(b)))
+    }
+  }
+
 
   def map2[A, B, C](pa: Par[A], pb: Par[B])(f: (A, B) => C): Par[C] = es => new Future[C] {
     def apply(cb: C => Unit): Unit = {
@@ -55,7 +64,7 @@ object NonBlocking {
 
       pa(es)(a => combiner ! Left(a))
       pb(es)(b => combiner ! Right(b))
-      
+
     }
 
 

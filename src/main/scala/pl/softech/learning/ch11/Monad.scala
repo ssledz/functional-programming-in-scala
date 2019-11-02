@@ -18,24 +18,13 @@ object MonadSyntax {
 
   implicit class MonadOps[F[_], A](val fa: F[A]) extends AnyVal {
 
+    def flatMap[B](f: A => F[B])(implicit F: Monad[F]): F[B] = F.flatMap(fa)(f)
+
     def >>=[B](f: A => F[B])(implicit F: Monad[F]): F[B] = F.flatMap(fa)(f)
 
+    def map[B](f: A => B)(implicit F: Monad[F]): F[B] = F.map(fa)(f)
   }
 
 }
 
-object MonadInstances {
-
-  implicit val listMonadInstance: Monad[List] = new Monad[List] {
-    def flatMap[A, B](fa: List[A])(f: A => List[B]): List[B] = fa.flatMap(f)
-
-    def pure[A](a: A): List[A] = List(a)
-  }
-
-  implicit val optionMonadInstance: Monad[Option] = new Monad[Option] {
-    def flatMap[A, B](fa: Option[A])(f: A => Option[B]): Option[B] = fa.flatMap(f)
-
-    def pure[A](a: A): Option[A] = Option(a)
-  }
-
-}
+object MonadInstances extends Ex1.MonadInstances
