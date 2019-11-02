@@ -4,7 +4,7 @@ trait Applicative[F[_]] extends Functor[F] {
 
   def pure[A](a: A): F[A]
 
-  def map[A, B](fa: F[A])(f: A => B): F[B] = map2(fa, fa)((a, _) => f(a))
+  def map[A, B](fa: F[A])(f: A => B): F[B] = map2(fa, pure(()))((a, _) => f(a))
 
   def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] = {
     val fbc: F[B => C] = ap(fa)(pure(f.curried))
@@ -52,7 +52,7 @@ object ApplicativeSyntax {
 
 object ApplicativeInstances {
 
-  implicit val listInstance: Applicative[List] = new Applicative[List] {
+  implicit val listApplicativeInstance: Applicative[List] = new Applicative[List] {
     override def map2[A, B, C](fa: List[A], fb: List[B])(f: (A, B) => C): List[C] = for {
       a <- fa
       b <- fb
@@ -61,7 +61,7 @@ object ApplicativeInstances {
     override def pure[A](a: A): List[A] = List(a)
   }
 
-  implicit val optionInstance: Applicative[Option] = new Applicative[Option] {
+  implicit val optionApplicativeInstance: Applicative[Option] = new Applicative[Option] {
     override def map2[A, B, C](fa: Option[A], fb: Option[B])(f: (A, B) => C): Option[C] = for {
       a <- fa
       b <- fb

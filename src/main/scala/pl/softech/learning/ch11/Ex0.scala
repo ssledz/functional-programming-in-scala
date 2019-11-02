@@ -1,28 +1,42 @@
 package pl.softech.learning.ch11
 
-import pl.softech.learning.ch11.ApplicativeInstances._
 import pl.softech.learning.ch11.ApplicativeSyntax._
 import pl.softech.learning.ch11.FunctorSyntax._
+import pl.softech.learning.ch11.MonadInstances._
+import pl.softech.learning.ch11.MonadSyntax._
 
 object Ex0 {
 
   def main(args: Array[String]): Unit = {
 
-    val xs = List(1, 2, 3)
-
-    println(Functor[List].map(xs)(_ + 1))
-
-    println(xs.fmap(_ + 1))
-
     println(FunctorLaws.law1(List(1, 2, 3)))
 
-    println(List(1, 2, 3).map2(List(4))(_ + _))
+    val xs = List(1, 2, 3)
 
-    println((List(1), List(2), List(3)).mapN(_ + _ + _))
+    Functor[List].map(xs)(_ + 1) === List(2, 3, 4)
 
-    println((List.empty[Int], List(2), List(3)).mapN(_ + _ + _))
+    xs.fmap(_ + 1) === List(2, 3, 4)
 
-    println((Option(1), Option(2)).mapN(_ + _))
+    List(1, 2, 3).map2(List(4))(_ + _) === List(5, 6, 7)
+
+    (List(1), List(2), List(3)).mapN(_ + _ + _) === List(6)
+
+    (List.empty[Int], List(2), List(3)).mapN(_ + _ + _) === List.empty
+
+    (Option(1), Option(2)).mapN(_ + _) === Some(3)
+
+    (Option(1) >>= ((a: Int) => Option(a + 1))) === Some(2)
+
+  }
+
+  implicit class IdOps[A](val a: A) extends AnyVal {
+
+    def ===(b: A): Unit = {
+      if (a != b) {
+        println(s"Required : $b but is $a")
+      }
+      assert(a == b)
+    }
 
   }
 

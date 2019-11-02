@@ -31,7 +31,7 @@ object FunctorSyntax {
 
 object FunctorInstances {
 
-  implicit val listInstance: Functor[List] = new Functor[List] {
+  implicit val listFunctorInstance: Functor[List] = new Functor[List] {
     def map[A, B](fa: List[A])(f: A => B): List[B] = fa.map(f)
   }
 
