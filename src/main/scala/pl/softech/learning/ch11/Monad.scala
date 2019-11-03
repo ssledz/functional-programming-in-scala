@@ -8,11 +8,15 @@ trait Monad[F[_]] extends Applicative[F] {
     flatMap(fa) { a =>
       flatMap(fab)(f => pure(f(a)))
     }
+
+  def join[A](ffa: F[F[A]]): F[A] = flatMap(ffa) { fa =>
+    flatMap(fa)(pure)
+  }
 }
 
 object Monad extends Ex3.MonadCombinators with Ex4.MonadCombinators with Ex6.MonadCombinators
   with Ex7.MonadCombinators {
-  
+
   def apply[F[_] : Monad]: Monad[F] = implicitly[Monad[F]]
 
   def product[A, B, F[_] : Monad](ma: F[A], mb: F[B]): F[(A, B)] = Monad[F].map2(ma, mb)((_, _))
