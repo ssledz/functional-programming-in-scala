@@ -4,7 +4,7 @@ object Ex10 {
 
   def main(args: Array[String]): Unit = {
 
-    // TODO
+    // TODO Prove that these two statements of the identity laws are equivalent.
 
   }
 
