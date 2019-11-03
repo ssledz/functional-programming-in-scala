@@ -43,4 +43,11 @@ object MonadInstances extends Ex1.MonadInstances with Ex2.MonadInstances {
     def pure[A](a: A): Id[A] = Id.pure(a)
   }
 
+  implicit def readerMonad[R]: Monad[({type f[x] = Reader[R, x]})#f] = new Monad[({type f[x] = Reader[R, x]})#f] {
+
+    def flatMap[A, B](st: Reader[R, A])(f: A => Reader[R, B]): Reader[R, B] = st.flatMap(f)
+
+    def pure[A](a: A): Reader[R, A] = Reader.pure(a)
+  }
+
 }
