@@ -27,4 +27,4 @@ object MonadSyntax {
 
 }
 
-object MonadInstances extends Ex1.MonadInstances
+object MonadInstances extends Ex1.MonadInstances with Ex2.MonadInstances
