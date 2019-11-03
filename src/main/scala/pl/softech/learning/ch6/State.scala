@@ -3,6 +3,8 @@ package pl.softech.learning.ch6
 case class State[S, +A](run: S => (A, S)) {
   self =>
 
+  def runA(s : S) : A = run(s)._1
+
   def flatMap[B](f: A => State[S, B]): State[S, B] = State(s => {
     val (x, ss) = run(s)
     val newState = f(x)

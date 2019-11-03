@@ -1,5 +1,6 @@
 package pl.softech.learning.ch11
 
+import pl.softech.learning.ch11.Assertion._
 import pl.softech.learning.ch6.State
 
 object Ex2 {
@@ -14,68 +15,26 @@ object Ex2 {
 
   }
 
-  type Registers = List[Int]
-
-  type StackState[A] = State[(Registers, List[String]), A]
+  type LogState[A] = State[List[String], A]
 
   def main(args: Array[String]): Unit = {
 
     import MonadInstances._
 
-    Monad[StackState]
+    val one = Monad[LogState].pure(1)
 
-    def ret: StackState[Int] = State { case (regs, stack) =>
-      (if (stack.isEmpty) regs.headOption.getOrElse(0) else stack.head.toInt, (regs, stack))
-    }
+    one.runA(List.empty) === 1
 
-    def continue(program: StackState[Int]): StackState[Int] = for {
-      stack <- State.get[(Registers, List[String])].map(_._2)
-      res <- if (stack.size == 0) ret else program
-    } yield res
-
-    def opF(f: Registers => (Int, Registers)): StackState[Int] = for {
-      state <- State.get[(Registers, List[String])]
-      (regs, stack) = state
-      (res, regsN) = f(regs)
-      _ <- State.set((regsN, res.toString :: stack.drop(1)))
-    } yield res
-
-    def op(f: Int => Int): StackState[Int] = opF { case a :: tail =>
-      (f(a), tail)
-    }
-
-    def biOp(f: (Int, Int) => Int): StackState[Int] = opF { case a :: b :: tail =>
-      (f(a, b), tail)
-    }
-
-    val numberOp: StackState[Int] = for {
-      state <- State.get[(Registers, List[String])]
-      (regs, stack) = state
-      res = stack.head.toInt
-      _ <- State.set((res :: regs, stack.drop(1)))
-    } yield res
-
-    lazy val program: StackState[Int] = for {
-      state <- State.get[(Registers, List[String])]
-      _ <- state match {
-        case (_, h :: _) => h match {
-          case "+" => biOp(_ + _)
-          case "*" => biOp(_ * _)
-          case "-" => op(x => -x)
-          case _ => numberOp
-        }
-        case _ => ret
+    val addOne = Monad[LogState].flatMap(one) { a =>
+      State { log =>
+        (a + 1, s"$a + 1" :: log)
       }
-      res <- continue(program)
-    } yield res
+    }
 
-    println(program.run((List.empty, List.empty)))
-    println(program.run((List.empty, List("1", "2"))))
-    println(program.run((List.empty, List("1", "2", "+"))))
-    println(program.run((List.empty, List("1", "2", "+", "1", "+"))))
-    println(program.run((List.empty, List("3", "1", "2", "+", "*"))))
-    println(program.run((List.empty, List("3", "1", "2", "+", "*", "-"))))
-    println(program.run((List.empty, List("3", "1", "2", "+", "-", "*"))))
+    val (res, log) = addOne.run(List.empty)
+
+    res === 2
+    log === List("1 + 1")
 
   }
 
