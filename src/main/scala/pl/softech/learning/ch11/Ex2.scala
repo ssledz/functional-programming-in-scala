@@ -21,22 +21,21 @@ object Ex2 {
 
     import MonadInstances._
 
-    val one = Monad[LogState].pure(1)
+    val two = Monad[LogState].pure(2)
 
-    one.runA(List.empty) === 1
+    two.runA(List.empty) === 2
 
-    val addOne = Monad[LogState].flatMap(one) { a =>
+    def inc(s: LogState[Int]) = Monad[LogState].flatMap(s) { a =>
       State { log =>
         (a + 1, s"$a + 1" :: log)
       }
     }
 
-    val (res, log) = addOne.run(List.empty)
+    val (res, log) = inc(two).run(List.empty)
 
-    res === 2
-    log === List("1 + 1")
+    res === 3
+    log === List("2 + 1")
 
   }
-
 
 }
