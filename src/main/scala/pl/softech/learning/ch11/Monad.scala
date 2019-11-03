@@ -10,7 +10,7 @@ trait Monad[F[_]] extends Applicative[F] {
     }
 }
 
-object Monad extends Ex3.MonadCombinators {
+object Monad extends Ex3.MonadCombinators with Ex4.MonadCombinators {
   def apply[F[_] : Monad]: Monad[F] = implicitly[Monad[F]]
 }
 
