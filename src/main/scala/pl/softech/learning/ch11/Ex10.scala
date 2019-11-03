@@ -4,6 +4,8 @@ object Ex10 {
 
   def main(args: Array[String]): Unit = {
 
+    // TODO
+
   }
 
 }
