@@ -10,8 +10,10 @@ trait Monad[F[_]] extends Applicative[F] {
     }
 }
 
-object Monad extends Ex3.MonadCombinators with Ex4.MonadCombinators {
+object Monad extends Ex3.MonadCombinators with Ex4.MonadCombinators with Ex6.MonadCombinators {
   def apply[F[_] : Monad]: Monad[F] = implicitly[Monad[F]]
+
+  def product[A, B, F[_] : Monad](ma: F[A], mb: F[B]): F[(A, B)] = Monad[F].map2(ma, mb)((_, _))
 }
 
 object MonadSyntax {
