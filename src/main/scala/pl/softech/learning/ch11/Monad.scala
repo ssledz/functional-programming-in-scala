@@ -35,4 +35,12 @@ object MonadSyntax {
 
 }
 
-object MonadInstances extends Ex1.MonadInstances with Ex2.MonadInstances
+object MonadInstances extends Ex1.MonadInstances with Ex2.MonadInstances {
+
+  implicit val idMonadInstance: Monad[Id] = new Monad[Id] {
+    def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = fa.flatMap(f)
+
+    def pure[A](a: A): Id[A] = Id.pure(a)
+  }
+
+}
