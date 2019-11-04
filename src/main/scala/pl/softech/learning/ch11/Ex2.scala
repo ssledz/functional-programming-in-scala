@@ -1,6 +1,6 @@
 package pl.softech.learning.ch11
 
-import pl.softech.learning.ch11.Assertion._
+import pl.softech.learning.Assertion._
 import pl.softech.learning.ch6.State
 
 object Ex2 {

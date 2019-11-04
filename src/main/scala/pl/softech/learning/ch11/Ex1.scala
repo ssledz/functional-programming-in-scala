@@ -2,7 +2,7 @@ package pl.softech.learning.ch11
 
 import java.util.concurrent.Executors
 
-import pl.softech.learning.ch11.Assertion._
+import pl.softech.learning.Assertion._
 import pl.softech.learning.ch11.MonadInstances._
 import pl.softech.learning.ch11.MonadSyntax._
 import pl.softech.learning.ch7.parallelism.NonBlocking

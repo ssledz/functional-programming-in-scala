@@ -1,4 +1,4 @@
-package pl.softech.learning.ch11
+package pl.softech.learning
 
 object Assertion {
 

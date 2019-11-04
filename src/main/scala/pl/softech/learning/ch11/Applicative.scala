@@ -20,6 +20,17 @@ trait Applicative[F[_]] extends Functor[F] {
   def ap[A, B](fa: F[A])(fab: F[A => B]): F[B] =
     map2(fa, fab) { (a, f) => f(a) }
 
+  def traverse[A, B](as: List[A])(f: A => F[B]): F[List[B]] =
+    as.foldRight(pure(List.empty[B])) { (a, acc) =>
+      map2(f(a), acc)(_ :: _)
+    }
+
+  def sequence[A](fas: List[F[A]]): F[List[A]] = traverse(fas)(identity)
+
+  def replicateM[A](n: Int, fa: F[A]): F[List[A]] = sequence(List.fill(n)(fa))
+
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] = map2(fa, fb)((_, _))
+
 }
 
 object Applicative {
