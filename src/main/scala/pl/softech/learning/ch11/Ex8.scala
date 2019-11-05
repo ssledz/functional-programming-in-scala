@@ -12,7 +12,7 @@ object Ex8 {
 
     val f0: F[A] => F[A] = _ => fa
 
-    val ff: F[A] => F[B] = compose(f0, f)
+    val ff: F[A] => F[B] = Monad[F].compose(f0, f)
 
     ff(fa)
   }

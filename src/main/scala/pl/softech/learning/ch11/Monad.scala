@@ -12,10 +12,12 @@ trait Monad[F[_]] extends Applicative[F] {
   def join[A](ffa: F[F[A]]): F[A] = flatMap(ffa) { fa =>
     flatMap(fa)(pure)
   }
+
+  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] = a => flatMap(f(a))(g)
+
 }
 
-object Monad extends Ex3.MonadCombinators with Ex4.MonadCombinators with Ex6.MonadCombinators
-  with Ex7.MonadCombinators {
+object Monad extends Ex3.MonadCombinators with Ex4.MonadCombinators with Ex6.MonadCombinators {
 
   def apply[F[_] : Monad]: Monad[F] = implicitly[Monad[F]]
 
