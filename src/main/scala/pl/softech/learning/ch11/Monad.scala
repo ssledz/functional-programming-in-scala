@@ -1,5 +1,7 @@
 package pl.softech.learning.ch11
 
+import pl.softech.learning.ch12
+
 trait Monad[F[_]] extends Applicative[F] {
 
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
@@ -37,7 +39,7 @@ object MonadSyntax {
 
 }
 
-object MonadInstances extends Ex1.MonadInstances with Ex2.MonadInstances {
+object MonadInstances extends Ex1.MonadInstances with Ex2.MonadInstances with ch12.Ex5.MonadInstances {
 
   implicit val idMonadInstance: Monad[Id] = new Monad[Id] {
     def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = fa.flatMap(f)
