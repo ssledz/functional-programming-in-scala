@@ -1,5 +1,7 @@
 package pl.softech.learning.ch11
 
+import pl.softech.learning.ch12
+
 trait Applicative[F[_]] extends Functor[F] {
 
   def pure[A](a: A): F[A]
@@ -68,7 +70,7 @@ object ApplicativeSyntax {
 
 }
 
-object ApplicativeInstances {
+object ApplicativeInstances extends ch12.Ex6.ApplicativeInstances {
 
   implicit val listApplicativeInstance: Applicative[List] = new Applicative[List] {
     override def map2[A, B, C](fa: List[A], fb: List[B])(f: (A, B) => C): List[C] = for {
