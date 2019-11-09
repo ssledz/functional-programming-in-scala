@@ -64,6 +64,16 @@ trait Applicative[F[_]] extends Functor[F] {
     }
   }
 
+  def sequenceMap[K, V](ofa: Map[K, F[V]]): F[Map[K, V]] = {
+    val xfs: List[F[(K, V)]] = ofa.toList.map { case (k, v) =>
+      self.map(v)(k -> _)
+    }
+
+    val fxs: F[List[(K, V)]] = self.sequence(xfs)
+
+    self.map(fxs)(_.toMap)
+  }
+
 }
 
 object Applicative {
