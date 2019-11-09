@@ -3,6 +3,7 @@ package pl.softech.learning.ch11
 import pl.softech.learning.ch12
 
 trait Applicative[F[_]] extends Functor[F] {
+  self =>
 
   def pure[A](a: A): F[A]
 
@@ -39,6 +40,18 @@ trait Applicative[F[_]] extends Functor[F] {
   def replicateM[A](n: Int, fa: F[A]): F[List[A]] = sequence(List.fill(n)(fa))
 
   def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] = map2(fa, fb)((_, _))
+
+  def product[G[_]](implicit G: Applicative[G]): Applicative[Lambda[A => (F[A], G[A])]] = new Applicative[Lambda[A => (F[A], G[A])]] {
+
+    def pure[A](a: A): (F[A], G[A]) = (self.pure(a), G.pure(a))
+
+    override def map2[A, B, C](faa: (F[A], G[A]), fbb: (F[B], G[B]))(f: (A, B) => C): (F[C], G[C]) = {
+      val (fa, ga) = faa
+      val (fb, gb) = fbb
+      (self.map2(fa, fb)(f), G.map2(ga, gb)(f))
+    }
+
+  }
 
 }
 
