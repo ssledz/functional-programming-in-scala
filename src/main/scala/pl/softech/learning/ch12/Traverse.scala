@@ -1,14 +1,20 @@
 package pl.softech.learning.ch12
 
+import pl.softech.learning.ch10.{Foldable, Monoid}
+import pl.softech.learning.ch11.ApplicativeInstances._
 import pl.softech.learning.ch11.{Applicative, Functor}
+import pl.softech.learning.ch12.Const.Const
 
-trait Traverse[F[_]] extends Functor[F] {
+trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
 
   def traverse[G[_] : Applicative, A, B](fa: F[A])(f: A => G[B]): G[F[B]] =
     sequence(map(fa)(f))
 
   def sequence[G[_] : Applicative, A](fga: F[G[A]]): G[F[A]] =
     traverse(fga)(ga => ga)
+
+  override def foldMap[A, M](as: F[A])(f: A => M)(mb: Monoid[M]): M =
+    traverse[Const[M, *], A, Nothing](as)(f)(monoidApplicativeInstance(mb))
 
 }
 

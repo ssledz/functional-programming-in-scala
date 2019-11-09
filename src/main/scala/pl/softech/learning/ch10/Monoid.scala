@@ -2,9 +2,18 @@ package pl.softech.learning.ch10
 
 trait Monoid[A] {
 
+  self =>
+
   def zero: A
 
   def op(a1: A, a2: A): A
+
+  def dual: Monoid[A] = new Monoid[A] {
+
+    def zero: A = self.zero
+
+    def op(a1: A, a2: A): A = self.op(a2, a1)
+  }
 
 }
 

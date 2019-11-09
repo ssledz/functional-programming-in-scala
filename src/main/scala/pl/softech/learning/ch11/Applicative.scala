@@ -1,6 +1,8 @@
 package pl.softech.learning.ch11
 
+import pl.softech.learning.ch10.Monoid
 import pl.softech.learning.ch12
+import pl.softech.learning.ch12.Const.Const
 
 trait Applicative[F[_]] extends Functor[F] {
   self =>
@@ -122,6 +124,15 @@ object ApplicativeInstances extends ch12.Ex6.ApplicativeInstances {
     } yield f(a, b)
 
     override def pure[A](a: A): Option[A] = Option(a)
+  }
+
+  implicit def monoidApplicativeInstance[M](implicit M: Monoid[M]): Applicative[Const[M, *]] = new Applicative[Const[M, *]] {
+
+    def pure[A](a: A): Const[M, A] = M.zero
+
+    override def map2[A, B, C](fa: Const[M, A], fb: Const[M, B])(f: (A, B) => C): Const[M, C] =
+      M.op(fa, fb)
+
   }
 
 }
