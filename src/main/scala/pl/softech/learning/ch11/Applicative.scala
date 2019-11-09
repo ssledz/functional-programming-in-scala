@@ -53,6 +53,17 @@ trait Applicative[F[_]] extends Functor[F] {
 
   }
 
+  def compose[G[_]](implicit G: Applicative[G]): Applicative[λ[A => F[G[A]]]] = new Applicative[λ[A => F[G[A]]]] {
+
+    def pure[A](a: A): F[G[A]] = self.pure(G.pure(a))
+
+    override def map2[A, B, C](fa: F[G[A]], fb: F[G[B]])(f: (A, B) => C): F[G[C]] = {
+      self.map2(fa, fb) { (ga, gb) =>
+        G.map2(ga, gb)(f)
+      }
+    }
+  }
+
 }
 
 object Applicative {
