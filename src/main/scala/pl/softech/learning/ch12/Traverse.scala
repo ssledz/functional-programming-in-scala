@@ -8,6 +8,8 @@ import pl.softech.learning.ch6.State
 
 trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
 
+  self =>
+
   def traverse[G[_] : Applicative, A, B](fa: F[A])(f: A => G[B]): G[F[B]] =
     sequence(map(fa)(f))
 
@@ -49,7 +51,7 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
       } yield ()
     }.runS(List.empty[A]).reverse
 
-  def reverse[A](fa: F[A]): F[A] = ???
+  def reverse[A](fa: F[A]): F[A] = mapAccum(fa, toList(fa).reverse)((_, as) => (as.head, as.tail))._1
 
 }
 

@@ -37,6 +37,16 @@ object Ex16 {
 
     H.zipWithIndex(tree) === Tree((1, 0), List(Tree((2, 1), List.empty)))
 
+    F.reverse(List(1, 2, 3, 4)) === List(4, 3, 2, 1)
+
+    H.reverse(tree) === Tree(2, List(Tree(1, List.empty)))
+
+    val x = tree
+
+    val y = List(3, 4, 5)
+
+    H.toList(H.reverse(x)) ++ F.toList(F.reverse(y)) === F.reverse(F.toList(y) ++ H.toList(x))
+
   }
 
 }
