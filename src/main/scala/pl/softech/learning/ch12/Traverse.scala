@@ -2,8 +2,9 @@ package pl.softech.learning.ch12
 
 import pl.softech.learning.ch10.{Foldable, Monoid}
 import pl.softech.learning.ch11.ApplicativeInstances._
-import pl.softech.learning.ch11.{Applicative, Functor}
+import pl.softech.learning.ch11.{Applicative, Functor, MonadInstances}
 import pl.softech.learning.ch12.Const.Const
+import pl.softech.learning.ch6.State
 
 trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
 
@@ -15,6 +16,40 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
 
   override def foldMap[A, M](as: F[A])(f: A => M)(mb: Monoid[M]): M =
     traverse[Const[M, *], A, Nothing](as)(f)(monoidApplicativeInstance(mb))
+
+  def traverseS[S, A, B](fa: F[A])(f: A => State[S, B]): State[S, F[B]] =
+    traverse[State[S, *], A, B](fa)(f)(MonadInstances.stateMonadInstance)
+
+  def mapAccum[S, A, B](fa: F[A], s: S)(f: (A, S) => (B, S)): (F[B], S) =
+    traverseS(fa) { a =>
+      for {
+        s1 <- State.get[S]
+        (b, s2) = f(a, s1)
+        _ <- State.set(s2)
+      } yield b
+    }.run(s)
+
+  def zipWithIndex[A](fa: F[A]): F[(A, Int)] = mapAccum(fa, 0)((a, s) => ((a, s), s + 1))._1
+
+  def zipWithIndex2[A](fa: F[A]): F[(A, Int)] =
+    traverseS(fa) { a =>
+      for {
+        i <- State.get[Int]
+        _ <- State.set(i + 1)
+      } yield (a, i)
+    }.runA(0)
+
+  def toList[A](fa: F[A]): List[A] = mapAccum(fa, List.empty[A])((a, as) => ((), a :: as))._2.reverse
+
+  def toList2[A](fa: F[A]): List[A] =
+    traverseS(fa) { a =>
+      for {
+        as <- State.get[List[A]]
+        _ <- State.set(a :: as)
+      } yield ()
+    }.runS(List.empty[A]).reverse
+
+  def reverse[A](fa: F[A]): F[A] = ???
 
 }
 
@@ -32,9 +67,11 @@ object TraverseInstances {
 
       val G = Applicative[G]
 
-      fa.foldRight(G.pure(List.empty[B])) { (a, acc) =>
+      val gl: G[List[B]] = fa.foldLeft(G.pure(List.empty[B])) { (acc, a) =>
         G.map2(f(a), acc)(_ :: _)
       }
+
+      G.map(gl)(_.reverse)
 
     }
 
@@ -69,7 +106,7 @@ object TraverseInstances {
 
       val gbs: List[G[Tree[B]]] = fa.tail.map(t => traverse(t)(f))
 
-      val xs: G[Tree[B]] = G.map2(gb, G.sequence(gbs)) { (b, bs) =>
+      val xs: G[Tree[B]] = G.map2(G.sequence(gbs), gb) { (bs, b) =>
         Tree(b, bs)
       }
 

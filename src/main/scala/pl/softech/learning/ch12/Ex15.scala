@@ -9,7 +9,13 @@ object Ex15 {
 
     val F = Traverse[List]
 
-    F.foldLeft(List(1, 2, 3, 4, 5))(0)(_ + _) === 15
+    val xs = List(1, 2, 3, 4, 5)
+
+    F.foldLeft(xs)(0)(_ + _) === 15
+
+    F.foldLeft(xs)(List.empty[Int])((ys, y) => y :: ys) === xs.reverse
+
+    F.foldRight(xs)(List.empty[Int])(_ :: _) === xs
 
   }
 
