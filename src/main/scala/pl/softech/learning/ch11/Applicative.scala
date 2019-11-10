@@ -131,7 +131,7 @@ object ApplicativeInstances extends ch12.Ex6.ApplicativeInstances {
     def pure[A](a: A): Const[M, A] = M.zero
 
     override def map2[A, B, C](fa: Const[M, A], fb: Const[M, B])(f: (A, B) => C): Const[M, C] =
-      M.op(fb, fa)
+      M.op(fa, fb)
 
   }
 

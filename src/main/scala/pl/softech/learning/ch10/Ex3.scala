@@ -8,7 +8,7 @@ object Ex3 {
 
       override def zero: A => A = (a : A) => a
 
-      override def op(f: A => A, g: A => A): A => A = f compose g
+      override def op(f: A => A, g: A => A): A => A = f andThen g
     }
 
   }

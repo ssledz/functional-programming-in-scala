@@ -6,6 +6,7 @@ trait Monad[F[_]] extends Applicative[F] {
 
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
 
+  // it means that map2 is right biased, probably it would be better to have left biased
   override def ap[A, B](fa: F[A])(fab: F[A => B]): F[B] =
     flatMap(fa) { a =>
       flatMap(fab)(f => pure(f(a)))
