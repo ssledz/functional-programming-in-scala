@@ -71,6 +71,16 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
     ghfb
   }
 
+  def compose[G[_]](implicit G: Traverse[G]): Traverse[Lambda[A => F[G[A]]]] = new Traverse[Lambda[A => F[G[A]]]] {
+
+    override def map[A, B](fa: F[G[A]])(f: A => B): F[G[B]] = self.map(fa) { ga =>
+      G.map(ga)(f)
+    }
+
+    override def traverse[H[_] : Applicative, A, B](fa: F[G[A]])(f: A => H[B]): H[F[G[B]]] =
+      self.traverse(fa) { ga => G.traverse(ga)(f) }
+  }
+
 }
 
 object Traverse {
