@@ -63,7 +63,13 @@ trait Traverse[F[_]] extends Functor[F] with Foldable[F] {
     case (b, Nil) => ((None, b), Nil)
   }._1
 
-  def fuse[G[_], H[_], A, B](fa: F[A])(f: A => G[B], g: A => H[B])(G: Applicative[G], H: Applicative[H]): (G[F[B]], H[F[B]]) = ???
+  def fuse[G[_], H[_], A, B](fa: F[A])(f: A => G[B], g: A => H[B])(implicit G: Applicative[G], H: Applicative[H]): (G[F[B]], H[F[B]]) = {
+    type GH[X] = (G[X], H[X])
+    val GH: Applicative[GH] = G.product[H]
+    val fg: A => GH[B] = a => (f(a), g(a))
+    val ghfb: GH[F[B]] = traverse(fa)(fg)(GH)
+    ghfb
+  }
 
 }
 
