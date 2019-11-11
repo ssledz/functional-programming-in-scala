@@ -1,8 +1,11 @@
 package pl.softech.learning.ch11
 
 import pl.softech.learning.ch12
+import pl.softech.learning.ch12.Traverse
 
 trait Monad[F[_]] extends Applicative[F] {
+
+  self =>
 
   def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
 
@@ -17,6 +20,25 @@ trait Monad[F[_]] extends Applicative[F] {
   }
 
   def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] = a => flatMap(f(a))(g)
+
+  def composeM[G[_]](implicit G: Monad[G], T: Traverse[G]): Monad[Lambda[A => F[G[A]]]] = new Monad[Lambda[A => F[G[A]]]] {
+
+    override def pure[A](a: A): F[G[A]] = self.pure(G.pure(a))
+
+    override def flatMap[A, B](fa: F[G[A]])(f: A => F[G[B]]): F[G[B]] = {
+      self.flatMap(fa) { ga =>
+
+        val gfgb: G[F[G[B]]] = G.map(ga)(f)
+
+        val fggb: F[G[G[B]]] = T.sequence(gfgb)(self)
+
+        val fgb: F[G[B]] = self.flatMap(fggb) { ggb =>
+          self.pure(G.join(ggb))
+        }
+        fgb
+      }
+    }
+  }
 
 }
 
