@@ -26,8 +26,8 @@ object Async {
 
   @annotation.tailrec
   private def step[A](async: Async[A]): Async[A] = async match {
-    case FlatMap(FlatMap(x, f), g : Kleisli[A]) => step(x flatMap (a => f(a) flatMap g))
-    case FlatMap(Return(x), f : Kleisli[A]) => step(f(x))
+    case FlatMap(FlatMap(x, f), g: Kleisli[A]) => step(x flatMap (a => f(a) flatMap g))
+    case FlatMap(Return(x), f: Kleisli[A]) => step(f(x))
     case _ => async
   }
 
@@ -46,8 +46,7 @@ object Async {
 
     def pure[A](a: A): Async[A] = Async.pure(a)
 
-    override def compose[A, B, C](f: A => Async[B], g: B => Async[C]): A => Async[C] =
-      a => Async.suspend(flatMap(f(a))(g))
+    override def compose[A, B, C](f: A => Async[B], g: B => Async[C]): A => Async[C] = a => Async.suspend(flatMap(f(a))(g))
   }
 
   case class Return[A](a: A) extends Async[A]
