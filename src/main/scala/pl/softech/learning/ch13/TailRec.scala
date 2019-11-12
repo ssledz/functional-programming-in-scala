@@ -1,5 +1,6 @@
 package pl.softech.learning.ch13
 
+import pl.softech.learning.ch11.Monad
 import pl.softech.learning.ch13.TailRec.FlatMap
 
 import scala.annotation.tailrec
@@ -31,6 +32,16 @@ object TailRec {
       case Suspend(r) => run(f(r()))
       case FlatMap(fc, g: (Any => TailRec[_])) => run(fc.flatMap(a => g(a).flatMap(f)))
     }
+  }
+
+  implicit val tailRecMonadInstance: Monad[TailRec] = new Monad[TailRec] {
+
+    def flatMap[A, B](fa: TailRec[A])(f: A => TailRec[B]): TailRec[B] = fa.flatMap(f)
+
+    def pure[A](a: A): TailRec[A] = TailRec.pure(a)
+
+    override def compose[A, B, C](f: A => TailRec[B], g: B => TailRec[C]): A => TailRec[C] =
+      a => TailRec.suspend(flatMap(f(a))(g)) // coroutine
   }
 
   case class Return[A](a: A) extends TailRec[A]
