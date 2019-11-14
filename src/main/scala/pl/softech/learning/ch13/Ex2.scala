@@ -2,6 +2,7 @@ package pl.softech.learning.ch13
 
 import pl.softech.learning.ch11.Monad
 import pl.softech.learning.ch13.Free._
+import pl.softech.learning.Assertion._
 
 object Ex2 {
 
@@ -38,7 +39,7 @@ object Ex2 {
 
     println(fac1)
     println(fac2)
-    println(runTrampoline(fac1))
+    runTrampoline(fac1) === 6
     println(runTrampoline(fac2))
 
   }
