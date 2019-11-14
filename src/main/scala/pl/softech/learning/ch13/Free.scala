@@ -19,7 +19,8 @@ object Free {
 
   def pure[F[_], A](a: A): Free[F, A] = Return(a)
 
-  def suspend[F[_], A](fa: => F[A]): Free[F, A] = FlatMap(pure(()), (_: Unit) => Suspend(fa))
+  def suspend[F[_], A](fa: => Free[F, A]): Free[F, A] =
+    FlatMap(pure(()), (_: Unit) => fa)
 
   @tailrec
   private def step[F[_], A](free: Free[F, A]): Free[F, A] = free match {
