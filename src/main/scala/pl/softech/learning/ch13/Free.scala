@@ -2,6 +2,7 @@ package pl.softech.learning.ch13
 
 import pl.softech.learning.ch11.Monad
 import pl.softech.learning.ch13.Free.FlatMap
+import pl.softech.learning.ch13.NaturalTransformation.~>
 
 import scala.annotation.tailrec
 
@@ -29,11 +30,11 @@ object Free {
     case _ => free
   }
 
-  def run[F[_], A](free: Free[F, A]): F[A] = step(free) match {
-    case Return(a) => ???
-    case Suspend(r) => r
+  def run[F[_], G[_] : Monad, A](free: Free[F, A])(t: F ~> G): G[A] = step(free) match {
+    case Return(a) => Monad[G].pure(a)
+    case Suspend(r) => t(r)
     case FlatMap(x, f) => x match {
-      case Suspend(r) => ???
+      case Suspend(r) => Monad[G].flatMap(t(r))(a => run(f(a))(t))
       case _ => sys.error("Impossible; `step` eliminates these cases")
     }
   }

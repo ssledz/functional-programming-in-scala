@@ -77,4 +77,10 @@ object MonadInstances extends Ex1.MonadInstances with Ex2.MonadInstances with ch
     def pure[A](a: A): Reader[R, A] = Reader.pure(a)
   }
 
+  implicit val function0MonadInstance: Monad[Function0] = new Monad[Function0] {
+    override def flatMap[A, B](fa: () => A)(f: A => () => B): () => B = f(fa())
+
+    override def pure[A](a: A): () => A = () => a
+  }
+
 }
