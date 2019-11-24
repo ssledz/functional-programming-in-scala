@@ -11,6 +11,39 @@ import scala.util.Try
 
 object Ex4 {
 
+  val consoleToFun0 = new (Console ~> Function0) {
+    override def apply[A](f: Console[A]): () => A = f.toThunk
+  }
+
+  def translate[F[_], G[_], A](f: Free[F, A])(fg: F ~> G): Free[G, A] = {
+
+    type FreeG[A] = Free[G, A]
+
+    val t = new (F ~> FreeG) {
+      override def apply[A](f: F[A]): FreeG[A] = Free.Suspend(fg(f))
+    }
+
+    Free.run(f)(t)
+  }
+
+  //  def runConsole[A](a: Free[Console, A]): A = {
+  //    Ex2.runTrampoline {
+  //      translate(a)(consoleToFun0)
+  //    }
+  //  }
+
+  def runConsole[A](a: Free[Console, A]): A = {
+
+    val identityT = new (Function0 ~> Function0) {
+      def apply[A](f: () => A): () => A = f
+    }
+
+    val res = Free.run(translate(a)(consoleToFun0))(identityT)
+
+    res()
+
+  }
+
   def main(args: Array[String]): Unit = {
 
     val program: Free[Console, Option[Int]] = for {
@@ -23,22 +56,22 @@ object Ex4 {
       }
     } yield age
 
-    val consoleToFun0 = new (Console ~> Function0) {
-      override def apply[A](f: Console[A]): () => A = f.toThunk
-    }
 
     val consoleToPar = new (Console ~> Par) {
       override def apply[A](f: Console[A]): Par[A] = f.toPar
     }
 
-    Free.run(program)(consoleToFun0)
-    val p = Free.run(program)(consoleToPar)
+    //    Free.run(program)(consoleToFun0)
 
     val es = Executors.newSingleThreadExecutor()
-    val age = NonBlocking.run(es)(p)
 
-    println(s"age: $age")
+    val runner = NonBlocking.run[Option[Int]](es)
+
+    runner(Free.run(program)(consoleToPar))
+
     es.shutdown()
+
+    runConsole(program)
   }
 
 }
