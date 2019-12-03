@@ -9,7 +9,7 @@ object Ex13 {
 
     implicit val foldableTreeInstance: Foldable[Tree] = new Foldable[Tree] {
 
-      def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B): B = as match {
+      override def foldLeft[A, B](as: Tree[A])(z: B)(f: (B, A) => B): B = as match {
         case Leaf(a) => f(z, a)
         case Branch(left, Leaf(a)) => f(foldLeft(left)(z)(f), a)
         case Branch(Leaf(a), right) => foldLeft(right)(f(z, a))(f)
@@ -19,7 +19,7 @@ object Ex13 {
         }
       }
 
-      def foldRight[A, B](as: Tree[A])(z: B)(f: (A, B) => B): B = {
+      override def foldRight[A, B](as: Tree[A])(z: B)(f: (A, B) => B): B = {
 
         def go(t: Tree[A], acc: B): B = t match {
           case Leaf(a) => f(a, acc)

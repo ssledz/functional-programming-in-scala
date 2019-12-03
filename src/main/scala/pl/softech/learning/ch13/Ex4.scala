@@ -65,7 +65,7 @@ object Ex4 {
 
     val es = Executors.newSingleThreadExecutor()
 
-    val runner = NonBlocking.run[Option[Int]](es)
+    val runner = NonBlocking.run[Option[Int]](es)_
 
     runner(Free.run(program)(consoleToPar))
 
