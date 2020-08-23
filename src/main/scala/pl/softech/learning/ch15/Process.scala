@@ -1,6 +1,6 @@
 package pl.softech.learning.ch15
 
-import pl.softech.learning.ch15.Process.{Await, Emit, Halt}
+import pl.softech.learning.ch15.Process.{Await, Emit, Halt, lift}
 
 sealed trait Process[I, O] {
 
@@ -24,6 +24,20 @@ sealed trait Process[I, O] {
     }
 
     go(this)
+  }
+
+  def map[O2](f: O => O2): Process[I, O2] = this |> lift(f)
+
+  def ++(p: => Process[I,O]): Process[I,O] = this match {
+    case Halt() => p
+    case Emit(h, t) => Emit(h, t ++ p)
+    case Await(recv) => Await(recv andThen (_ ++ p))
+  }
+
+  def flatMap[O2](f: O => Process[I,O2]): Process[I,O2] = this match {
+    case Halt() => Halt()
+    case Emit(h, t) => f(h) ++ t.flatMap(f)
+    case Await(recv) => Await(recv andThen (_ flatMap f))
   }
 
 }
