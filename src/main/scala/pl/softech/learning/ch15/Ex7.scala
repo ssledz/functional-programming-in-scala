@@ -7,29 +7,30 @@ object Ex7 {
 
   trait ProcessOps {
 
-    def zip[I, O1, O2](p1: Process[I, O1], p2: Process[I, O2]): Process[I, (Option[O1], Option[O2])] = Await[I, (Option[O1], Option[O2])] {
-      case Some(x) =>
-        val (o1, t1) = feed(x, p1)
-        val (o2, t2) = feed(x, p2)
-        Emit(o1 -> o2) ++ zip(t1, t2)
-      case None => Halt()
+    def zip[I, O1, O2](p1: Process[I, O1], p2: Process[I, O2]): Process[I, (O1, O2)] = (p1, p2) match {
+      case (Halt(), _) => Halt()
+      case (_, Halt()) => Halt()
+      case (Emit(o1, t1), Emit(o2, t2)) => Emit((o1, o2), zip(t1, t2))
+      case (Await(recv), p) => Await(i => zip(recv(i), feed(i)(p)))
+      case (p, Await(recv)) => Await(i => zip(feed(i)(p), recv(i)))
     }
 
-    private def feed[I, O](input: I, p: Process[I, O]): (Option[O], Process[I, O]) = {
-      def go(pp: Process[I, O]): (Option[O], Process[I, O]) = pp match {
-        case Emit(head, tail) => Some(head) -> tail
-        case Await(recv) => go(recv(Some(input)))
-        case Halt() => None -> Halt()
-      }
+    def feed[I, O](input: Option[I])(p: Process[I, O]): Process[I, O] = p match {
+      case Emit(head, tail) => Emit(head, feed(input)(tail))
+      case Await(recv) => recv(input)
+      case Halt() => p
+    }
 
-      go(p)
+    implicit class ZipOps2[I, O](val p: Process[I, O]) {
+      def zip[O2](p2: Process[I, O2]): Process[I, (O, O2)] = Process.zip(p, p2)
+
+      def feed(input: Option[I]): Process[I, O] = Process.feed(input)(p)
     }
 
   }
 
-  def mean2: Process[Double, Double] = zip(count[Double], sum).flatMap {
-    case (Some(c), Some(s)) => Emit[Double, Double](s / c)
-    case _ => Halt()
+  def mean2: Process[Double, Double] = zip(count[Double], sum).map {
+    case (c, s) => s / c
   }
 
   def main(args: Array[String]): Unit = {
@@ -37,7 +38,7 @@ object Ex7 {
     val plus1: Process[Int, Int] = lift(_ + 1)
     val plus2: Process[Int, Int] = lift(_ + 2)
 
-    zip(plus1, plus2)(Stream(1, 2, 3)).toList === List((Some(2), Some(3)), (Some(3), Some(4)), (Some(4), Some(5)))
+    plus1.zip(plus2)(Stream(1, 2, 3)).toList === List((2, 3), (3, 4), (4, 5))
 
     mean2(Stream(1, 2, 3, 4, 5, 6)).toList === List(1.0, 1.5, 2.0, 2.5, 3.0, 3.5)
 
