@@ -28,7 +28,7 @@ sealed trait Process[I, O] {
 
 }
 
-object Process extends Ex1.ProcessOps with Ex2.ProcessOps with Ex3.ProcessOps with Ex4.ProcessOps {
+object Process extends Ex1.ProcessOps with Ex2.ProcessOps with Ex3.ProcessOps with Ex4.ProcessOps with Ex5.Implicits {
 
   def liftOne[I, O](f: I => O): Process[I, O] = Await {
     case Some(i) => Emit(f(i))
