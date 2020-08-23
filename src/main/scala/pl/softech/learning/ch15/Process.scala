@@ -1,5 +1,6 @@
 package pl.softech.learning.ch15
 
+import pl.softech.learning.ch11.Monad
 import pl.softech.learning.ch15.Process.{Await, Emit, Halt, lift}
 
 sealed trait Process[I, O] {
@@ -28,13 +29,13 @@ sealed trait Process[I, O] {
 
   def map[O2](f: O => O2): Process[I, O2] = this |> lift(f)
 
-  def ++(p: => Process[I,O]): Process[I,O] = this match {
+  def ++(p: => Process[I, O]): Process[I, O] = this match {
     case Halt() => p
     case Emit(h, t) => Emit(h, t ++ p)
     case Await(recv) => Await(recv andThen (_ ++ p))
   }
 
-  def flatMap[O2](f: O => Process[I,O2]): Process[I,O2] = this match {
+  def flatMap[O2](f: O => Process[I, O2]): Process[I, O2] = this match {
     case Halt() => Halt()
     case Emit(h, t) => f(h) ++ t.flatMap(f)
     case Await(recv) => Await(recv andThen (_ flatMap f))
@@ -42,7 +43,14 @@ sealed trait Process[I, O] {
 
 }
 
-object Process extends Ex1.ProcessOps with Ex2.ProcessOps with Ex3.ProcessOps with Ex4.ProcessOps with Ex5.Implicits {
+object Process extends Ex1.ProcessOps with Ex2.ProcessOps with Ex3.ProcessOps with Ex4.ProcessOps with Ex5.Implicits
+  with Ex6.ProcessOps with Ex7.ProcessOps {
+
+  implicit def monadInstance[I]: Monad[Process[I, *]] = new Monad[Process[I, *]] {
+    def flatMap[A, B](fa: Process[I, A])(f: A => Process[I, B]): Process[I, B] = fa.flatMap(f)
+
+    def pure[A](a: A): Process[I, A] = Emit(a)
+  }
 
   def liftOne[I, O](f: I => O): Process[I, O] = Await {
     case Some(i) => Emit(f(i))

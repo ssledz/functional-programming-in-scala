@@ -25,15 +25,22 @@ object Ex5 {
 
     def p[I]: Process[I, I] = drop[I](5) |> take[I](3)
 
-    p(Stream.from(1)).toList === List(6, 7, 8)
-
     val plus1 = lift[Int, Int](_ + 1)
 
-    val pp = plus1 |> plus1
+    def pp: Process[Int, Int] = (for {
+      _ <- drop[Int](4)
+      x <- plus1
+    } yield x) |> take(3)
+
+    p(Stream.from(1)).toList === List(6, 7, 8)
+    
+    pp(Stream.from(1)).toList === List(7, 8, 9)
+
+    val plus2 = plus1 |> plus1
 
     plus1(Stream(1, 2, 3)).toList === List(2, 3, 4)
 
-    pp(Stream(1, 2, 3)).toList === List(3, 4, 5)
+    plus2(Stream(1, 2, 3)).toList === List(3, 4, 5)
 
   }
 
