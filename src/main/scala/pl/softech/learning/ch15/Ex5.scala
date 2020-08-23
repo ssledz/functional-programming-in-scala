@@ -27,10 +27,7 @@ object Ex5 {
 
     p(Stream.from(1)).toList === List(6, 7, 8)
 
-    val plus1 = Await[Int, Int] {
-      case Some(i) => Emit(i + 1)
-      case None => Halt()
-    }.repeat
+    val plus1 = lift[Int, Int](_ + 1)
 
     val pp = plus1 |> plus1
 
