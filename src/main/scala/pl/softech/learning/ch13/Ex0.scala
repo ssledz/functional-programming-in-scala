@@ -23,7 +23,7 @@ object Ex0 {
 
     TailRec.run(ff(1)) === 1
 
-    val es = Executors.newFixedThreadPool(3)
+    implicit val es = Executors.newFixedThreadPool(3)
 
     val runner = NonBlocking.run[Int](es) _
 
@@ -38,6 +38,13 @@ object Ex0 {
     val p: Par[Int] = Async.run(gg(1))
 
     runner(p) === 1
+
+    val io = for {
+      _ <- IO(println("Hello"))
+      _ <- IO(println("World"))
+    } yield ()
+
+    IO.unsafePerformIO(io)
 
     println("shutting down")
 
