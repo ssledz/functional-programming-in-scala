@@ -2,17 +2,17 @@ package pl.softech.learning.ch15
 
 import java.io.{File, FileWriter, Writer}
 
-import pl.softech.learning.ch15.Process._
+import pl.softech.learning.ch15.Process1._
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 object Ex9 {
 
-  def processFile(input: File, output: File, process: Process[Double, Double]): Unit = {
+  def processFile(input: File, output: File, process: Process1[Double, Double]): Unit = {
 
     @tailrec
-    def go(it: Iterator[String], out: Writer, p: Process[Double, Double]): Unit = {
+    def go(it: Iterator[String], out: Writer, p: Process1[Double, Double]): Unit = {
       p match {
         case Emit(head, tail) =>
           out.write(s"$head\n")

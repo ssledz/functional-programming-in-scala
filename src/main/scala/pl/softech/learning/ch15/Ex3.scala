@@ -1,14 +1,14 @@
 package pl.softech.learning.ch15
 
 import pl.softech.learning.Assertion._
-import pl.softech.learning.ch15.Process._
+import pl.softech.learning.ch15.Process1._
 
 object Ex3 {
 
   trait ProcessOps {
 
-    def mean: Process[Double, Double] = {
-      def go(acc: Double, cnt: Int): Process[Double, Double] = Await {
+    def mean: Process1[Double, Double] = {
+      def go(acc: Double, cnt: Int): Process1[Double, Double] = Await {
         case Some(x) =>
           val newAcc = acc + x
           val newCnt = cnt + 1

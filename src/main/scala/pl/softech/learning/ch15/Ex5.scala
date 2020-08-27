@@ -1,14 +1,14 @@
 package pl.softech.learning.ch15
 
 import pl.softech.learning.Assertion._
-import pl.softech.learning.ch15.Process._
+import pl.softech.learning.ch15.Process1._
 
 object Ex5 {
 
   trait Implicits {
 
-    implicit class ProcessComposition[I, O](val p1: Process[I, O]) {
-      def |>[O2](p2: Process[O, O2]): Process[I, O2] = p2 match {
+    implicit class ProcessComposition[I, O](val p1: Process1[I, O]) {
+      def |>[O2](p2: Process1[O, O2]): Process1[I, O2] = p2 match {
         case Emit(head, tail) => Emit(head, p1 |> tail)
         case Halt() => Halt()
         case Await(recv) => p1 match {
@@ -23,11 +23,11 @@ object Ex5 {
 
   def main(args: Array[String]): Unit = {
 
-    def p[I]: Process[I, I] = drop[I](5) |> take[I](3)
+    def p[I]: Process1[I, I] = drop[I](5) |> take[I](3)
 
     val plus1 = lift[Int, Int](_ + 1)
 
-    def pp: Process[Int, Int] = (for {
+    def pp: Process1[Int, Int] = (for {
       _ <- drop[Int](4)
       x <- plus1
     } yield x) |> take(3)

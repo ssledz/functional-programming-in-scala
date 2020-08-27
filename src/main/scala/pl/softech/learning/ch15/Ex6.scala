@@ -1,13 +1,13 @@
 package pl.softech.learning.ch15
 
 import pl.softech.learning.Assertion._
-import pl.softech.learning.ch15.Process._
+import pl.softech.learning.ch15.Process1._
 
 object Ex6 {
 
   trait ProcessOps {
-    def zipWithIndex[I]: Process[I, (I, Int)] = {
-      def go(acc: Int): Process[I, (I, Int)] = Await {
+    def zipWithIndex[I]: Process1[I, (I, Int)] = {
+      def go(acc: Int): Process1[I, (I, Int)] = Await {
         case Some(x) => Emit((x, acc), go(acc + 1))
         case None => Halt()
       }
@@ -15,8 +15,8 @@ object Ex6 {
       go(0)
     }
 
-    implicit class ZipOps[I, O](val p: Process[I, O]) {
-      def zipWithIndex: Process[I, (O, Int)] = p |> Process.zipWithIndex
+    implicit class ZipOps[I, O](val p: Process1[I, O]) {
+      def zipWithIndex: Process1[I, (O, Int)] = p |> Process1.zipWithIndex
     }
 
   }

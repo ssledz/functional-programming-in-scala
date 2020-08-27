@@ -1,12 +1,12 @@
 package pl.softech.learning.ch15
 
 import pl.softech.learning.Assertion._
-import pl.softech.learning.ch15.Process._
+import pl.softech.learning.ch15.Process1._
 
 object Ex4 {
 
   trait ProcessOps {
-    def loop[S, I, O](z: S)(f: (I, S) => (O, S)): Process[I, O] = Await {
+    def loop[S, I, O](z: S)(f: (I, S) => (O, S)): Process1[I, O] = Await {
       case Some(i) => f(i, z) match {
         case (o, s2) => Emit(o, loop(s2)(f))
       }
@@ -14,11 +14,11 @@ object Ex4 {
     }
   }
 
-  def sum2: Process[Double, Double] = loop(0.0) { case (i, acc) => (i + acc, i + acc) }
+  def sum2: Process1[Double, Double] = loop(0.0) { case (i, acc) => (i + acc, i + acc) }
 
-  def mean2: Process[Double, Double] = loop(0.0 -> 0) { case (i, (acc, cnt)) => ((i + acc) / (cnt + 1), (i + acc, cnt + 1)) }
+  def mean2: Process1[Double, Double] = loop(0.0 -> 0) { case (i, (acc, cnt)) => ((i + acc) / (cnt + 1), (i + acc, cnt + 1)) }
 
-  def count2[I]: Process[I, Int] = loop(0) { case (_, cnt) => (cnt + 1, cnt + 1) }
+  def count2[I]: Process1[I, Int] = loop(0) { case (_, cnt) => (cnt + 1, cnt + 1) }
 
   def main(args: Array[String]): Unit = {
     count2(Stream("a", "b", "c")).toList === List(1, 2, 3)

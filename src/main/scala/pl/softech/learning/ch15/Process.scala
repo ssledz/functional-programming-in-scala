@@ -1,83 +1,46 @@
 package pl.softech.learning.ch15
 
-import pl.softech.learning.ch11.Monad
-import pl.softech.learning.ch15.Process.{Await, Emit, Halt, lift}
+import pl.softech.learning.ch15.Process._
 
-sealed trait Process[I, O] {
+sealed trait Process[F[_], O] {
 
-  def apply(s: Stream[I]): Stream[O] = this match {
-    case Halt() => Stream()
-    case Await(recv) => s match {
-      case h #:: t => recv(Some(h))(t)
-      case xs => recv(None)(xs)
-    }
-    case Emit(h, t) => h #:: t(s)
+  def onHalt(f: Throwable => Process[F, O]): Process[F, O] = this match {
+    case Halt(err) => Try(f(err))
+    case Emit(head, tail) => Emit(head, tail.onHalt(f))
+    case Await(req, recv) => Await(req, recv andThen (_.onHalt(f)))
   }
 
-  def repeat: Process[I, O] = {
-    def go(p: Process[I, O]): Process[I, O] = p match {
-      case Halt() => go(this) // Restart the process if it halts on its own.
-      case Await(recv) => Await {
-        case None => recv(None) // Don’t repeat if terminated from source.
-        case i => go(recv(i))
-      }
-      case Emit(h, t) => Emit(h, go(t))
-    }
-
-    go(this)
+  def ++(p: => Process[F, O]): Process[F, O] = onHalt {
+    case End => p
+    case err => Halt(err)
   }
 
-  def map[O2](f: O => O2): Process[I, O2] = this |> lift(f)
-
-  def ++(p: => Process[I, O]): Process[I, O] = this match {
-    case Halt() => p
-    case Emit(h, t) => Emit(h, t ++ p)
-    case Await(recv) => Await(recv andThen (_ ++ p))
-  }
-
-  def flatMap[O2](f: O => Process[I, O2]): Process[I, O2] = this match {
-    case Halt() => Halt()
-    case Emit(h, t) => f(h) ++ t.flatMap(f)
-    case Await(recv) => Await(recv andThen (_ flatMap f))
+  def flatMap[O2](f: O => Process[F, O2]): Process[F, O2] = this match {
+    case Halt(err) => Halt(err)
+    case Emit(o, t) => Try(f(o)) ++ t.flatMap(f)
+    case Await(req, recv) => Await(req, recv andThen (_ flatMap f))
   }
 
 }
 
-object Process extends Ex1.ProcessOps with Ex2.ProcessOps with Ex3.ProcessOps with Ex4.ProcessOps with Ex5.Implicits
-  with Ex6.ProcessOps with Ex7.ProcessOps with Ex8.ProcessOps {
+object Process {
 
-  implicit def monadInstance[I]: Monad[Process[I, *]] = new Monad[Process[I, *]] {
-    def flatMap[A, B](fa: Process[I, A])(f: A => Process[I, B]): Process[I, B] = fa.flatMap(f)
+  def await[F[_], A, O](req: F[A])(recv: Either[Throwable, A] => Process[F, O]): Process[F, O] = Await(req, recv)
 
-    def pure[A](a: A): Process[I, A] = Emit(a)
-  }
+  def Try[F[_], O](p: => Process[F, O]): Process[F, O] =
+    try p
+    catch {
+      case e: Throwable => Halt(e)
+    }
 
-  def liftOne[I, O](f: I => O): Process[I, O] = Await {
-    case Some(i) => Emit(f(i))
-    case None => Halt()
-  }
+  case class Await[F[_], A, O](req: F[A], recv: Either[Throwable, A] => Process[F, O]) extends Process[F, O]
 
-  def filter[I](p: I => Boolean): Process[I, I] = Await[I, I] {
-    case Some(i) if p(i) => Emit(i)
-    case _ => Halt()
-  }.repeat
+  case class Emit[F[_], O](head: O, tail: Process[F, O]) extends Process[F, O]
 
-  def sum: Process[Double, Double] = {
-    def go(acc: Double): Process[Double, Double] =
-      Await {
-        case Some(d) => Emit(d + acc, go(d + acc))
-        case None => Halt()
-      }
+  case class Halt[F[_], O](err: Throwable) extends Process[F, O]
 
-    go(0.0)
-  }
+  case object End extends Throwable
 
-  def lift[I, O](f: I => O): Process[I, O] = liftOne(f).repeat
-
-  case class Emit[I, O](head: O, tail: Process[I, O] = Halt[I, O]()) extends Process[I, O]
-
-  case class Await[I, O](recv: Option[I] => Process[I, O]) extends Process[I, O]
-
-  case class Halt[I, O]() extends Process[I, O]
+  case object Kill extends Throwable
 
 }
