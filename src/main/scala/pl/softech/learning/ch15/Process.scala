@@ -44,7 +44,7 @@ sealed trait Process[I, O] {
 }
 
 object Process extends Ex1.ProcessOps with Ex2.ProcessOps with Ex3.ProcessOps with Ex4.ProcessOps with Ex5.Implicits
-  with Ex6.ProcessOps with Ex7.ProcessOps {
+  with Ex6.ProcessOps with Ex7.ProcessOps with Ex8.ProcessOps {
 
   implicit def monadInstance[I]: Monad[Process[I, *]] = new Monad[Process[I, *]] {
     def flatMap[A, B](fa: Process[I, A])(f: A => Process[I, B]): Process[I, B] = fa.flatMap(f)

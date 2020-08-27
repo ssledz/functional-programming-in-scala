@@ -1,0 +1,21 @@
+# Moderate Oven
+356
+# Water boils
+212
+
+
+#Hot Bath
+104
+# Body temperature
+98.6
+# Beach weather
+86
+# Room temperature
+70
+50
+# Freezing point of water
+32
+
+
+0
+−40
