@@ -11,6 +11,10 @@ object IO {
 
   type IO[A] = Free[Par, A]
 
+  def defer[A](fa: => IO[A]): IO[A] = Free.suspend(fa)
+
+  def pure[A](a: A): IO[A] = Free.pure(a)
+
   def apply[A](a: => A): IO[A] = Free.pure(()).map(_ => a)
 
   private def identity[G[_]]: G ~> G = new (G ~> G) {

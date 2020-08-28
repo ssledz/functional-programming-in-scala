@@ -52,7 +52,7 @@ object Ex10 {
     def add[F[_] : MonadCatch](x: String, y: String): F[Int] = for {
       a <- MonadCatch[F].pure(x).map(_.toInt)
       b <- MonadCatch[F].attempt(MonadCatch[F].pure(y).map(_.toInt)).flatMap {
-        case Left(err) => MonadCatch[F].pure(0)
+        case Left(_) => MonadCatch[F].pure(0)
         case Right(value) => MonadCatch[F].pure(value)
       }
     } yield a + b
