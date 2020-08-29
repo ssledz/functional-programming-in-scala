@@ -3,48 +3,26 @@ package pl.softech.learning.ch15
 import java.io.{BufferedReader, File, FileReader}
 
 import pl.softech.learning.Assertion._
-import pl.softech.learning.ch11.Monad
 import pl.softech.learning.ch11.MonadSyntax._
 import pl.softech.learning.ch15.Process._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 object Ex10 {
 
-  trait MonadCatch[F[_]] extends Monad[F] {
-    def attempt[A](a: F[A]): F[Either[Throwable, A]]
+  trait ProcessOps {
 
-    def fail[A](t: Throwable): F[A]
-  }
+    def runLog[F[_], O](src: Process[F, O])(implicit F: MonadCatch[F]): F[IndexedSeq[O]] = {
+      def go(fCurr: F[Process[F, O]], acc: IndexedSeq[O]): F[IndexedSeq[O]] = fCurr.flatMap {
+        case Emit(head, tail) => go(F.pure(tail), acc :+ head)
+        case Halt(End) => F.pure(acc)
+        case Halt(err) => F.fail(err)
+        case Await(req: F[Any], recv: (Either[Throwable, Any] => Process[F, O])) =>
+          go(F.attempt(req).map(x => recv(x)), acc)
+      }
 
-  object MonadCatch {
-    def apply[F[_]](implicit F: MonadCatch[F]): MonadCatch[F] = F
-  }
-
-  implicit val monadTryCatchInstance: MonadCatch[Try] = new MonadCatch[Try] {
-
-    override def attempt[A](a: Try[A]): Try[Either[Throwable, A]] = a match {
-      case Failure(exception) => Success(Left(exception))
-      case Success(value) => Success(Right(value))
+      go(F.pure(src), IndexedSeq.empty)
     }
-
-    override def fail[A](t: Throwable): Try[A] = Failure(t)
-
-    override def flatMap[A, B](fa: Try[A])(f: A => Try[B]): Try[B] = fa.flatMap(f)
-
-    override def pure[A](a: A): Try[A] = Success(a)
-  }
-
-  def runLog[F[_], O](src: Process[F, O])(implicit F: MonadCatch[F]): F[IndexedSeq[O]] = {
-    def go(fCurr: F[Process[F, O]], acc: IndexedSeq[O]): F[IndexedSeq[O]] = fCurr.flatMap {
-      case Emit(head, tail) => go(F.pure(tail), acc :+ head)
-      case Halt(End) => F.pure(acc)
-      case Halt(err) => F.fail(err)
-      case Await(req: F[Any], recv: (Either[Throwable, Any] => Process[F, O])) =>
-        go(F.attempt(req).map(x => recv(x)), acc)
-    }
-
-    go(F.pure(src), IndexedSeq.empty)
   }
 
   def main(args: Array[String]): Unit = {

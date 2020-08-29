@@ -40,7 +40,7 @@ sealed trait Process[F[_], O] {
 
 }
 
-object Process extends Ex11.ProcessOps {
+object Process extends Ex11.ProcessOps with Ex10.ProcessOps {
 
   def lines(filename: String): Process[IO, String] =
     resource(IO(io.Source.fromFile(filename))) { src =>
