@@ -1,5 +1,7 @@
 package pl.softech.learning.ch15
 
+import pl.softech.learning.ch13.IO
+import pl.softech.learning.ch13.IO.IO
 import pl.softech.learning.ch15.Process._
 
 sealed trait Process[F[_], O] {
@@ -21,9 +23,43 @@ sealed trait Process[F[_], O] {
     case Await(req, recv) => Await(req, recv andThen (_ flatMap f))
   }
 
+  def onComplete(p: => Process[F, O]): Process[F, O] =
+    onHalt {
+      case End => p.asFinalizer
+      case err => p.asFinalizer ++ Halt(err)
+    }
+
+  def asFinalizer: Process[F, O] = this match {
+    case Emit(h, t) => Emit(h, t.asFinalizer)
+    case Halt(e) => Halt(e)
+    case Await(req, recv: (Either[Throwable, Any] => Process[F, O])) => await(req) {
+      case Left(Kill) => this.asFinalizer
+      case x: Either[Throwable, Any] => recv(x)
+    }
+  }
+
 }
 
-object Process {
+object Process extends Ex11.ProcessOps {
+
+  def lines(filename: String): Process[IO, String] =
+    resource(IO(io.Source.fromFile(filename))) { src =>
+      lazy val iter = src.getLines // a stateful iterator
+      def step: Option[String] = if (iter.hasNext) Some(iter.next) else None
+
+      lazy val lines: Process[IO, String] = eval(IO(step)).flatMap {
+        case None => Halt(End)
+        case Some(line) => Emit(line, lines)
+      }
+      lines
+    }(src => eval_(IO(src.close)))
+
+  def resource[F[_], R, O](acquire: F[R])(use: R => Process[F, O])(release: R => Process[F, O]): Process[F, O] =
+    await[F, R, O](acquire) {
+      case Left(err) => Halt(err)
+      case Right(r) => use(r).onComplete(release(r))
+    }
+
 
   def await[F[_], A, O](req: F[A])(recv: Either[Throwable, A] => Process[F, O]): Process[F, O] = Await(req, recv)
 
