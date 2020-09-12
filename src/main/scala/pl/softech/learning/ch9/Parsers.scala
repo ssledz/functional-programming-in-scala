@@ -1,12 +1,12 @@
 package pl.softech.learning.ch9
 
-import pl.softech.learning.Assertion._
+import pl.softech.learning.ch9.Parsers.ParseError
 
 import scala.util.matching.Regex
 
-trait Parsers[ParseError, Parser[+_]] extends Ex1.ParsersExt[ParseError, Parser]
-  with Ex3.ParsersExt[ParseError, Parser] with Ex4.ParsersExt[ParseError, Parser]
-  with Ex7.ParsersExt[ParseError, Parser] with Ex8.ParsersExt[ParseError, Parser] {
+trait Parsers[Parser[+_]] extends Ex1.ParsersExt[Parser]
+  with Ex3.ParsersExt[Parser] with Ex4.ParsersExt[Parser]
+  with Ex7.ParsersExt[Parser] with Ex8.ParsersExt[Parser] {
   self =>
 
   def run[A](p: Parser[A])(input: String): Either[ParseError, A]
@@ -39,6 +39,10 @@ trait Parsers[ParseError, Parser[+_]] extends Ex1.ParsersExt[ParseError, Parser]
 
   implicit def regex(r: Regex): Parser[String]
 
+  def scope[A](msg: String)(p: Parser[A]): Parser[A]
+
+  def attempt[A](p: Parser[A]): Parser[A]
+
   case class ParserOps[A](p: Parser[A]) {
     def |[B >: A](p2: => Parser[B]): Parser[B] = self.or(p, p2)
 
@@ -57,46 +61,18 @@ trait Parsers[ParseError, Parser[+_]] extends Ex1.ParsersExt[ParseError, Parser]
 
   }
 
-  object Laws {
+}
 
-    def laws(): Unit = {
+object Parsers {
 
-      for (c <- 'A' to 'z') {
-        run(char(c))(c.toString) === Right(c)
+  case class ParseError(stack: List[(Location, String)])
 
-        List("alaa").foreach { a =>
-          run(succeed(a))(c.toString) == Right(a)
-        }
-
-      }
-
-      List("ababa").foreach { s =>
-        run(string(s))(s) === Right(s)
-
-        List("qwerty").foreach { a =>
-          run(succeed(a))(s) == Right(a)
-        }
-
-      }
-
-      run(or(string("abra"), string("cadabra")))("abra") === Right("abra")
-
-      run(or(string("abra"), string("cadabra")))("cadabra") === Right("cadabra")
-
-      run(listOfN(3, "ab" | "cad"))("ababcad") === Right(List("ab", "ab", "cad"))
-
-      run(listOfN(3, "ab" | "cad"))("cadabab") === Right(List("cad", "ab", "ab"))
-
-      run(listOfN(3, "ab" | "cad"))("ababab") === Right(List("ab", "ab", "ab"))
-
-      val numA: Parser[Int] = char('a').many.map(_.size)
-
-      run(numA)("aaa") === Right(3)
-
-      run(slice((char('a') | char('b')).many))("aaba") === Right("aaba")
-
+  case class Location(input: String, offset: Int = 0) {
+    lazy val line = input.slice(0, offset + 1).count(_ == '\n') + 1
+    lazy val col = input.slice(0, offset + 1).lastIndexOf('\n') match {
+      case -1 => offset + 1
+      case lineStart => offset - lineStart
     }
-
   }
 
 }

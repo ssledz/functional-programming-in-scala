@@ -2,8 +2,8 @@ package pl.softech.learning.ch9
 
 object Ex7 {
 
-  trait ParsersExt[ParseError, Parser[+_]] {
-    self: Parsers[ParseError, Parser] =>
+  trait ParsersExt[Parser[+_]] {
+    self: Parsers[Parser] =>
 
     def product[A, B](p: Parser[A], p2: => Parser[B]): Parser[(A, B)] =
       for {
