@@ -4,8 +4,7 @@ import pl.softech.learning.ch9.Parsers.ParseError
 
 import scala.util.matching.Regex
 
-trait Parsers[Parser[+_]] extends Ex1.ParsersExt[Parser]
-  with Ex3.ParsersExt[Parser] with Ex4.ParsersExt[Parser]
+trait Parsers[Parser[+_]] extends Ex1.ParsersExt[Parser] with Ex3.ParsersExt[Parser] with Ex4.ParsersExt[Parser]
   with Ex7.ParsersExt[Parser] with Ex8.ParsersExt[Parser] {
   self =>
 
@@ -19,7 +18,7 @@ trait Parsers[Parser[+_]] extends Ex1.ParsersExt[Parser]
 
   implicit def string(s: String): Parser[String]
 
-  implicit def operators[A](p: Parser[A]) = ParserOps[A](p)
+  implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps[A](p)
 
   implicit def asStringParser[A](a: A)(implicit f: A => Parser[String]): ParserOps[String] = ParserOps(f(a))
 
@@ -73,6 +72,8 @@ object Parsers {
       case -1 => offset + 1
       case lineStart => offset - lineStart
     }
+
+    def toError(msg: String): ParseError = ParseError(List(this -> msg))
   }
 
 }
