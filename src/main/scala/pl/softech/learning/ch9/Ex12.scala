@@ -28,6 +28,7 @@ object Ex12 {
 
     def attempt[A](p: MyParser[A]): MyParser[A] = ???
 
+    def succeed[A](a: A): MyParser[A] = ???
   }
 
 }

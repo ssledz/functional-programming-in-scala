@@ -12,7 +12,7 @@ trait Parsers[Parser[+_]] extends Ex1.ParsersExt[Parser] with Ex3.ParsersExt[Par
 
   def char(c: Char): Parser[Char] = string(c.toString) map (_.charAt(0))
 
-  def succeed[A](a: A): Parser[A] = string("") map (_ => a)
+  def succeed[A](a: A): Parser[A]
 
   def or[A](s1: Parser[A], s2: => Parser[A]): Parser[A]
 

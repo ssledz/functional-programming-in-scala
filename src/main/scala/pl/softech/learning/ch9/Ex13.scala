@@ -16,11 +16,12 @@ object Ex13 {
     run2(s)("abcdefg") === Success("abcd", 4)
     run2(s)("aabcdefg") == Failure(ParseError(List(Location("aabcdefg", 0) -> "Expected: abcd")))
 
-    run2(regex("abc*".r))("aa") == Failure(ParseError(List(Location("aa", 0) -> "Expected: abc*")))
-    run2(regex("abc*".r))("abccc") == Success("abccc", 5)
+    run2(regex("abc*".r))("aa") === Failure(ParseError(List(Location("aa", 0) -> "Expected: abc*")))
+    run2(regex("abc*".r))("abccc") === Success("abccc", 5)
 
-    run2(succeed("abc"))("abccc") == Success("abc", 0)
+    run2(succeed("abc"))("abccc") === Success("abc", 0)
 
+    run2(slice("abc"))("abcbca") === Success("abc", 3)
   }
 
 }
